@@ -93,7 +93,14 @@ def make_file_for_modelling(input_path, plain = True, weights = False, lemmatise
             "dep": 0}
 
         # select dependency grammar with this
-        from corpkit.process import get_deps
+
+        def get_deps(sentence, dep_type):
+            if dep_type == 'basic-dependencies':
+                return sentence.basic_dependencies
+            if dep_type == 'collapsed-dependencies':
+                return sentence.collapsed_dependencies
+            if dep_type == 'collapsed-ccprocessed-dependencies':
+                return sentence.collapsed_ccprocessed_dependencies
         output = []
         toks = sent.tokens
         deps = get_deps(sent, dep_type)
