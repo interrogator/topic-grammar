@@ -18,12 +18,16 @@ def make_weighted_corpus():
     from contextlib import closing
     from collections import OrderedDict
     from itertools import izip
+
+    # paths to our data
+
     dvtst_functions = 'parsed-data/functions-art.dev_test'
     train_functions = 'parsed-data/functions-art.train'
     dvtst_lemmata = 'parsed-data/lemmata-art.dev_test'
     train_lemmata = 'parsed-data/lemmata-art.train'
     dvtst_tokens = 'parsed-data/tokens-art.dev_test'
     train_tokens = 'parsed-data/tokens-art.train'
+    
     dev_test = [dvtst_functions, dvtst_lemmata, dvtst_tokens]
     train = [train_functions, train_lemmata, train_tokens]
 
@@ -34,6 +38,30 @@ def make_weighted_corpus():
     else:
         num_prev = len(glob.glob('to_model/*.weights'))
 
+    def previous_model_best():
+        """
+        run mallet over the files created in the PREVIOUS iteration
+        assess if the previous model was the best one
+    
+        random output right now. raphael needs to add this bit.
+        """
+        import random
+        import subprocess, glob, os
+
+        # get the most recent iteration
+        if not first_run:
+            oldfiles = glob.glob('to_model/*')
+            oldfiles.sort(key=os.path.getmtime)
+            recent_dt, recent_train, recent_weight = oldfiles[:3]
+            # run mallet via subprocess over the most recent iteration
+        else:
+            # provide paths to our initial mallet output here
+            pass
+
+        # run evaluator, returning bool
+
+        return bool(random.getrandbits(1))
+
     # store as ordered dict so we can modify more important things first...
     # we know that root and nsubj have some topic meaning, so we start with those
     # -1 lets us know the value hasn't been modified at all yet
@@ -42,10 +70,17 @@ def make_weighted_corpus():
             ["root", 1],
             ["nsubj", 1],
             ["acomp", -1],
-            ["advcl", -1],
-            ["advmod", -1],
             ["agent", -1],
             ["amod", -1],
+            ["nsubjpass", -1],
+            ["csubj", -1],
+            ["csubjpass", -1],
+            ["dobj", -1],
+            ["ccomp", -1],
+            ["xcomp", -1],
+            ["iobj", -1],
+            ["advcl", -1],
+            ["advmod", -1],
             ["appos", -1],
             ["acl", -1],
             ["case", -1],
@@ -56,27 +91,21 @@ def make_weighted_corpus():
             ["aux", -1],
             ["auxpass", -1],
             ["cc", -1],
-            ["ccomp", -1],
             ["complm", -1],
             ["conj", -1],
-            ["csubj", -1],
-            ["csubjpass", -1],
             ["dep", -1],
             ["det", -1],
-            ["dobj", -1],
             ["expl", -1],
             ["hmod", -1],
             ["hyph", -1],
             ["infmod", -1],
             ["intj", -1],
-            ["iobj", -1],
             ["mark", -1],
             ["meta", -1],
             ["neg", -1],
             ["nmod", -1],
             ["nn", -1],
             ["npadvmod", -1],
-            ["nsubjpass", -1],
             ["num", -1],
             ["number", -1],
             ["oprd", -1],
@@ -93,14 +122,11 @@ def make_weighted_corpus():
             ["punct", -1],
             ["quantmod", -1],
             ["punct", -1],
-            ["relcl", -1],
-            ["xcomp", -1]])
+            ["relcl", -1]])
 
     def get_weights():
         """
-        1. access a file containing the previous weights
-        2. access bool value for whether the previous topic model is the best yet
-        3. adjust weights
+        return previous weights
         """
         import json
         import os
@@ -109,22 +135,13 @@ def make_weighted_corpus():
             data = weights
         else:
             fs = sorted(glob.glob('to_model/*.weights'))
-            print fs[-1]
             data = json.load(codecs.open(fs[-1], 'rb'), object_pairs_hook=OrderedDict)
         return data
 
-    def previous_model_best():
-        """
-        assess if the previous model was the best one
-    
-        random right now. raphael needs to add this bit.
-        """
-        import random
-        return bool(random.getrandbits(1))
-
     def determine_new_weighting(old_weights, latest_model_best):
         """
-        output the new set of weights for this run
+        output the new set of weights, based on the old and the prev 
+        model being better/worse
         """
         from collections import OrderedDict
         new_weights = OrderedDict(old_weights)
@@ -166,7 +183,7 @@ def make_weighted_corpus():
 
     if not new_weights:
         print('Apparently finished. All functions have been weighted.')
-        return
+        return False
 
     #print(output_train_name)
     #print(output_dt_name)
@@ -175,9 +192,13 @@ def make_weighted_corpus():
     #print(latest_model_best)
     #print(new_weights)
 
+    # code below repeats itself for dev_test and train
+    # the idea is to match up the lemmata, tokens and functions and print the lemma form
+    # by the current weight
+
     for index, (fline, lline, tline) in enumerate(izip(open(dev_test[0], 'r'), open(dev_test[1], 'r'), open(dev_test[2], 'r'))):
-        if index > 9:
-            break
+        #if index > 50:
+        #    break
         print('Doing dev test, iter %d, article %d' % (num_prev, index + 1))
         #print(fline[:25], lline[:25], tline[:25])
         output_text = ''
@@ -187,6 +208,7 @@ def make_weighted_corpus():
             if score is False:
                 print('NOT FOUND:', f, l, t)
                 score = 0
+            # what should we do with pronouns? right now, print their actual written form
             if l == '-PRON-':
                 l = t
             if score > 0:
@@ -195,10 +217,10 @@ def make_weighted_corpus():
         if not os.path.isfile(os.path.join('to_model', output_dt_name)):
             open(os.path.join('to_model', output_dt_name), 'w').close()
         with codecs.open(os.path.join('to_model', output_dt_name), 'a', encoding = 'utf-8') as fo:
-            fo.write(output_text + '\n')
+            fo.write(output_text.decode('utf-8') + '\n')
 
     for index, (fline, lline, tline) in enumerate(izip(open(train[0], 'r'), open(train[1], 'r'), open(train[2], 'r'))):
-        #if index > 9:
+        #if index > 50:
         #    break
         print('Doing train, iter %d, article %d' % (num_prev, index + 1))
         output_text = ''
@@ -216,10 +238,13 @@ def make_weighted_corpus():
         if not os.path.isfile(os.path.join('to_model', output_train_name)):
             open(os.path.join('to_model', output_train_name), 'w').close()
         with codecs.open(os.path.join('to_model', output_train_name), 'a', encoding = 'utf-8') as fo:
-            fo.write(output_text + '\n')
+            fo.write(output_text.decode('utf-8') + '\n')
 
     with codecs.open(os.path.join('to_model', output_weight_file), 'wb', encoding = 'utf-8') as fo:
         json.dump(new_weights, fo)
+    return True
 
 if __name__ == '__main__':
-    make_weighted_corpus()
+    processing = True
+    while processing:
+        processing = make_weighted_corpus()

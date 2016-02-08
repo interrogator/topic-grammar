@@ -17,8 +17,6 @@ for f in glob.glob('data/*'):
     print f
     base = os.path.basename(f)
     for index, line in enumerate(codecs.open(f, 'r', encoding = 'utf-8')):
-        if index > 10:
-            break
         print 'Doing %s: %d' % (f, index + 1)
         tokens = ''
         lemmata = ''
