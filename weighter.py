@@ -64,15 +64,23 @@ def make_weighted_corpus(testmode = True):
         """
         assess if the previous model was the best one
         """
-        if first_run:
-            return True
 
         import codecs
         bs = 'best.score'
         cs = 'current.score'
-        bestscore = float(codecs.open(bs, 'r', encoding = 'utf-8').read().strip())
+
         currscore = float(codecs.open(cs, 'r', encoding = 'utf-8').read().strip())
-        return currscore > bestscore
+        if not os.path.isfile(bs):
+            with codecs.open(bs, 'w', encoding = 'utf-8') as fo:
+                fo.write(str(currscore))
+        bestscore = float(codecs.open(bs, 'r', encoding = 'utf-8').read().strip())
+        if currscore > bestscore:
+            with codecs.open(bs, 'w', encoding = 'utf-8') as fo:
+                fo.write(str(currscore))            
+        if first_run:
+            return True
+        else:
+            return currscore > bestscore
 
     # store as ordered dict so we can modify more important things first...
     # we know that root and nsubj have some topic meaning, so we start with those
