@@ -51,7 +51,6 @@ def make_weighted_corpus(testmode = True):
     train = [train_functions, train_lemmata, train_tokens]
 
     # find out if first run or not
-    num_prev = 0
     first_run = True
     data = pickle.load(codecs.open('risk.weights', 'rb'))
     num_prev = len(data)
@@ -68,15 +67,14 @@ def make_weighted_corpus(testmode = True):
         import codecs
         bs = 'best.score'
         cs = 'current.score'
-
         currscore = float(codecs.open(cs, 'r', encoding = 'utf-8').read().strip())
         if not os.path.isfile(bs):
             with codecs.open(bs, 'w', encoding = 'utf-8') as fo:
-                fo.write(str(currscore))
-        bestscore = float(codecs.open(bs, 'r', encoding = 'utf-8').read().strip())
+                fo.write(str(num_prev) + ' ' + str(currscore))
+        bestscore = float(codecs.open(bs, 'r', encoding = 'utf-8').read().strip().split()[1])
         if currscore > bestscore:
             with codecs.open(bs, 'w', encoding = 'utf-8') as fo:
-                fo.write(str(currscore))            
+                fo.write(str(num_prev) + ' ' + str(currscore))            
         if first_run:
             return True
         else:
