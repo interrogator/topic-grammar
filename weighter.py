@@ -162,9 +162,9 @@ def make_weighted_corpus(testmode = False):
             score = new_weights.get(f, False)
             if score is False:
                 #print('NOT FOUND:', f, l, t)
-                score = 0
+                continue
             if l == '-PRON-':
-                l = t
+                continue
             if score > 0:
                 output_text += (l + ' ') * score
 
