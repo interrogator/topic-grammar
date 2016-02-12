@@ -22,11 +22,13 @@ def make_weighted_corpus(testmode = False):
     non-first iterations must have current.score and best.score
     """
 
-    import os, glob, codecs, fileinput, pickle
+    import os, glob, codecs, fileinput, pickle, re
     from contextlib import closing
     from collections import OrderedDict
     from itertools import izip
 
+    wordreg = re.compile(r'[a-zA-Z0-9]', re.IGNORECASE)
+    
     # paths to our data
 
     #dvtst_functions = 'parsed-data/functions-art.dev_test'
@@ -156,6 +158,7 @@ def make_weighted_corpus(testmode = False):
             if testmode:
                 break
         # print('Doing train, iter %d, article %d' % (num_prev, index + 1))
+        lline = lline.replace('  ', " 's ")
         output_text = ''
         zipped = zip(fline.split(), lline.split(), tline.split())
         for f, l, t in zipped:
@@ -164,6 +167,10 @@ def make_weighted_corpus(testmode = False):
                 #print('NOT FOUND:', f, l, t)
                 continue
             if l == '-PRON-':
+                continue
+            if l == 'to':
+                continue
+            if not re.search(wordreg, l):
                 continue
             if score > 0:
                 output_text += (l + ' ') * score
