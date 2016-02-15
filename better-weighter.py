@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-def make_weighted_corpus(testmode = False, maxweight = 4):
+def make_weighted_corpus(testmode = False, maxweight = 4, fastmode = True):
     """
     make newest corpus, attempt 2
     two problems in weighter.py
@@ -49,6 +49,7 @@ def make_weighted_corpus(testmode = False, maxweight = 4):
     #dev_test = [dvtst_functions, dvtst_lemmata, dvtst_tokens]
     train = [train_functions, train_lemmata, train_tokens]
 
+    baseline = float(codecs.open('baseline.score', 'r', encoding = 'utf-8').read().strip())
     prev_score = float(codecs.open('current.score', 'r', encoding = 'utf-8').read().strip())
 
     # add previous score to previous iteration
@@ -61,6 +62,13 @@ def make_weighted_corpus(testmode = False, maxweight = 4):
                 print('Apparently done.')
                 print(0)
                 return
+
+        # if previous iteration was zero and it improved on baseline
+        # skip further iterations on that function
+        if fastmode:
+            if data[-1][1] == 0 and data[-1][2] > baseline:
+                for x in range(1, maxweight + 1):
+                    data.append([data[-1][0], x, 0.0])
     else:
         data = []
     with codecs.open('all.data', 'wb', encoding = 'utf-8') as fo:
@@ -72,12 +80,8 @@ def make_weighted_corpus(testmode = False, maxweight = 4):
 
     # now determine new stuff
     iteration = len(data)
-    try:
-        funct, weight = lab_scores[iteration]
-    except IndexError:
-        print('Apparently done.')
-        print(0)
-        return
+    funct, weight = lab_scores[iteration]
+
 
     for index, (fline, lline, tline) in enumerate(izip(open(train[0], 'r'), open(train[1], 'r'), open(train[2], 'r'))):
         if index > 99:
@@ -109,6 +113,7 @@ def make_weighted_corpus(testmode = False, maxweight = 4):
     with codecs.open('all.data', 'wb', encoding = 'utf-8') as fo:
         pickle.dump(data, fo)
     print( 1 )
+    return
 
 if __name__ == '__main__':
     make_weighted_corpus()
