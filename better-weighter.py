@@ -80,7 +80,7 @@ def make_weighted_corpus(testmode = False, maxweight = 9, fastmode = True):
             elif prev_weight == 1:
                 data.append([prev_func, 1, baseline])
             elif prev_weight > 1 and prev_weight < maxweight:
-                if prev_score <= baseline:
+                if prev_score <= data[-2][2]:
                     for x in range(prev_weight + 1, maxweight + 1):
                         data.append([prev_func, x, 0.0])
     else:
