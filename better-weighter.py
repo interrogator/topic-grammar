@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-def make_weighted_corpus(testmode = True, maxweight = 4):
+def make_weighted_corpus(testmode = False, maxweight = 4):
     """
     make newest corpus, attempt 2
     two problems in weighter.py
@@ -54,7 +54,13 @@ def make_weighted_corpus(testmode = True, maxweight = 4):
     # add previous score to previous iteration
     if os.path.isfile('all.data'):
         data = pickle.load(codecs.open('all.data', 'rb'))
-        data[-1].append(prev_score)
+        if len(data[-1]) == 2:
+            data[-1].append(prev_score)
+        else:
+            if len(data) == len(lab_scores):
+                print('Apparently done.')
+                print(0)
+                return
     else:
         data = []
     with codecs.open('all.data', 'wb', encoding = 'utf-8') as fo:
