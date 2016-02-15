@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-def make_weighted_corpus(testmode = False, maxweight = 4, fastmode = True):
+def make_weighted_corpus(testmode = True, maxweight = 4, fastmode = True):
     """
     make newest corpus, attempt 2
     two problems in weighter.py
@@ -68,7 +68,17 @@ def make_weighted_corpus(testmode = False, maxweight = 4, fastmode = True):
         if fastmode:
             if data[-1][1] == 0 and data[-1][2] > baseline:
                 for x in range(1, maxweight + 1):
-                    data.append([data[-1][0], x, 0.0])
+                    if x == 1:
+                       scr = baseline
+                    else:
+                        scr = 0.0
+                    data.append([data[-1][0], x, scr])
+            if data[-1][1] == 1:
+                data.append([data[-1], 1, baseline])
+            if data[-1][1] > 1:
+                if data[-1][1] <= baseline:
+                    for x in range(data[-1][1], maxweight + 1):
+                        data.append([data[-1][0], x, 0.0])
     else:
         data = []
     with codecs.open('all.data', 'wb', encoding = 'utf-8') as fo:
