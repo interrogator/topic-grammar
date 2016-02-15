@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-def make_weighted_corpus(testmode = True, maxweight = 4, fastmode = True):
+def make_weighted_corpus(testmode = False, maxweight = 9, fastmode = True):
     """
     make newest corpus, attempt 2
     two problems in weighter.py
@@ -65,20 +65,24 @@ def make_weighted_corpus(testmode = True, maxweight = 4, fastmode = True):
 
         # if previous iteration was zero and it improved on baseline
         # skip further iterations on that function
+        prev_func, prev_weight, prev_score = data[-1]
         if fastmode:
-            if data[-1][1] == 0 and data[-1][2] > baseline:
-                for x in range(1, maxweight + 1):
-                    if x == 1:
-                       scr = baseline
-                    else:
-                        scr = 0.0
-                    data.append([data[-1][0], x, scr])
-            if data[-1][1] == 1:
-                data.append([data[-1], 1, baseline])
-            if data[-1][1] > 1:
-                if data[-1][1] <= baseline:
-                    for x in range(data[-1][1], maxweight + 1):
-                        data.append([data[-1][0], x, 0.0])
+            if prev_weight == 0:
+                if prev_score > baseline:
+                    for x in range(1, maxweight + 1):
+                        if x == 1:
+                           scr = baseline
+                        else:
+                            scr = 0.0
+                        data.append([prev_func, x, scr])
+                else:
+                    data.append([prev_func, 1, baseline])
+            elif prev_weight == 1:
+                data.append([prev_func, 1, baseline])
+            elif prev_weight > 1 and prev_weight < maxweight:
+                if prev_score <= baseline:
+                    for x in range(prev_weight + 1, maxweight + 1):
+                        data.append([prev_func, x, 0.0])
     else:
         data = []
     with codecs.open('all.data', 'wb', encoding = 'utf-8') as fo:
